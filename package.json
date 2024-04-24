@@ -1,0 +1,40 @@
+{
+  "name": "mesto_api",
+  "version": "1.0.0",
+  "main": "app.ts",
+  "author": "Sergey Terpugov",
+  "license": "MIT",
+  "scripts": {
+    "lint": "npx eslint src/**/*.ts",
+    "start": "ts-node-dev src/app.ts",
+    "dev": "ts-node-dev src/app.ts",
+    "dev-inspect": "ts-node-dev --debug --inspect -- src/app.ts",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.0.2",
+    "@eslint/js": "^9.0.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.7",
+    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "eslint": "8.2.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-config-standard-with-typescript": "^43.0.1",
+    "eslint-plugin-import": "2.25.2",
+    "eslint-plugin-n": "^15.0.0 || ^16.0.0 ",
+    "eslint-plugin-promise": "^6.0.0",
+    "globals": "^15.0.0",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.6.0"
+  },
+  "dependencies": {
+    "@typescript-eslint/parser": "^7.6.0",
+    "eslint-config-eslint": "^9.0.0",
+    "express": "^4.19.2",
+    "mongoose": "^8.3.2"
+  },
+  "keywords": [],
+  "description": ""
+}
