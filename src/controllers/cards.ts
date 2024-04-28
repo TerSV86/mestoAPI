@@ -6,13 +6,15 @@ const NotFoundError = require('../errors/notFoundError');
 const BadRequest = require('../errors/BadRequest');
 
 export const getCards = async (req: Request, res: Response) => Card.find({})
+  .select('-__v')
+  .populate('owener')
   .then((cards) => res.send({ data: cards }))
   .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 
 export const createCard = async (req: any, res: Response, next: NextFunction) => {
   const { name, link } = req.body;
   const owener = req.user._id;
-  return Card.create({ name, link, owener })
+  return (await Card.create({ name, link, owener })).populate('owener')
     .then((card) => {
       if (!card) {
         throw new BadRequest('Переданы некорректные данные при создании карточки');
@@ -20,31 +22,22 @@ export const createCard = async (req: any, res: Response, next: NextFunction) =>
       res.send({ data: card });
     })
     .catch(next);
-  /* try {
-    const card = await Card.create({
-      name, link, owener,
-    });
-    return res.send({ data: card });
-  } catch {
-    return res.status(500).send({ message: 'Произошла ошибка' });
-  } */
 };
 
 export const deleteCard = async (req: Request, res: Response, next: NextFunction) => {
-  const { id } = req.params;
-  return Card.deleteOne({ _id: id })
+  const { cardId } = req.params;
+  return Card.deleteOne({ _id: cardId })
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка с указанным _id не найдена');
       }
-      res.send({ data: card });
+      res.send({ message: 'Карточка удалена' });
     })
     .catch(next);
 };
 
 export const likeCard = async (req: any, res: Response, next: NextFunction) => {
   const id = req.user._id;
-  console.log(id);
 
   return Card.findByIdAndUpdate(
     req.params.cardId,
@@ -58,7 +51,7 @@ export const likeCard = async (req: any, res: Response, next: NextFunction) => {
       if (!Types.ObjectId.isValid(id)) {
         throw new BadRequest('Переданы некорректные данные при создании пользователя');
       }
-      res.send({ data: card });
+      res.send({ data: card.likes });
     })
     .catch(next);
 };
