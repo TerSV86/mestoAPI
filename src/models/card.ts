@@ -21,10 +21,11 @@ const cardSchema = new Schema<ICard>({
   },
   owener: {
     type: Schema.Types.ObjectId,
+    ref: 'User',
     required: true,
   },
   likes: {
-    type: [Schema.Types.ObjectId],
+    type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     default: [],
   },
   createdAt: {
