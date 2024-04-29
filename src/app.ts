@@ -1,12 +1,18 @@
 import express, {
   json, Response, NextFunction,
 } from 'express';
-import mongoose from 'mongoose';
+import mongoose, { Error as MongooseError } from 'mongoose';
+/* import ValidatorError from 'validator'; */
+import { constants } from 'http2';
+/* import user from './models/user'; */
+import helmet from 'helmet';
 import router from './routes/index';
 
 const { PORT = 3000 } = process.env;
 
 const app = express();
+
+app.use(helmet());
 
 app.use((req: any, res: Response, next: NextFunction) => {
   req.user = {
@@ -30,8 +36,15 @@ mongoose.connection.on('error', (err) => {
 
 // eslint-disable-next-line no-unused-vars
 app.use((err: any, req: any, res: Response, next: NextFunction) => {
+  if (err.name === 'ValidationError') {
+    res.status(constants.HTTP_STATUS_BAD_REQUEST)
+      .send({ message: `Переданы некорректные данные ${err.message}` });
+  }
+  if (err instanceof MongooseError.CastError) {
+    res.status(constants.HTTP_STATUS_NOT_FOUND)
+      .send({ message: 'Передан некорректный id' });
+  }
   const { statusCode = 500, message } = err;
-  console.log('middl', message);
 
   res
     .status(statusCode)
@@ -40,6 +53,7 @@ app.use((err: any, req: any, res: Response, next: NextFunction) => {
         ? 'На сервере ошибка'
         : message,
     });
+  /* next(); */
 });
 
 app.listen(PORT, () => {
