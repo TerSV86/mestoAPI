@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import { Types } from 'mongoose';
+import { constants } from 'http2';
 import Card from '../models/card';
 
 const NotFoundError = require('../errors/notFoundError');
-const BadRequest = require('../errors/BadRequest');
+/* const BadRequest = require('../errors/BadRequest'); */
 
 export const getCards = async (req: Request, res: Response) => Card.find({})
   .select('-__v')
@@ -14,19 +14,20 @@ export const getCards = async (req: Request, res: Response) => Card.find({})
 export const createCard = async (req: any, res: Response, next: NextFunction) => {
   const { name, link } = req.body;
   const owener = req.user._id;
-  return (await Card.create({ name, link, owener })).populate('owener')
+  return Card.create({ name, link, owener })
+    .then((card) => card.populate('owener'))
     .then((card) => {
-      if (!card) {
-        throw new BadRequest('Переданы некорректные данные при создании карточки');
-      }
-      res.send({ data: card });
+      res.status(constants.HTTP_STATUS_CREATED).send({ data: card });
     })
-    .catch(next);
+    .catch((err: any) => {
+      next(err);
+    });
 };
 
 export const deleteCard = async (req: Request, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
-  return Card.deleteOne({ _id: cardId })
+
+  return Card.findByIdAndDelete(cardId)
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка с указанным _id не найдена');
@@ -48,9 +49,6 @@ export const likeCard = async (req: any, res: Response, next: NextFunction) => {
       if (!card) {
         throw new NotFoundError('Карточка с указанным _id не найдена');
       }
-      if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequest('Переданы некорректные данные при создании пользователя');
-      }
       res.send({ data: card.likes });
     })
     .catch(next);
@@ -67,9 +65,6 @@ export const dislikeCard = async (req: any, res: Response, next: NextFunction) =
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка с указанным _id не найдена');
-      }
-      if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequest('Переданы некорректные данные при создании пользователя');
       }
       res.send({ data: card });
     })
