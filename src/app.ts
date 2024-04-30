@@ -34,14 +34,14 @@ mongoose.connection.on('error', (err) => {
   console.error('Ошибка подключения к базе данных:', err);
 });
 
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars, consistent-return
 app.use((err: any, req: any, res: Response, next: NextFunction) => {
   if (err.name === 'ValidationError') {
-    res.status(constants.HTTP_STATUS_BAD_REQUEST)
+    return res.status(constants.HTTP_STATUS_BAD_REQUEST)
       .send({ message: `Переданы некорректные данные ${err.message}` });
   }
   if (err instanceof MongooseError.CastError) {
-    res.status(constants.HTTP_STATUS_NOT_FOUND)
+    return res.status(constants.HTTP_STATUS_BAD_REQUEST)
       .send({ message: 'Передан некорректный id' });
   }
   const { statusCode = 500, message } = err;
