@@ -6,7 +6,10 @@ import mongoose, { Error as MongooseError } from 'mongoose';
 import { constants } from 'http2';
 /* import user from './models/user'; */
 import helmet from 'helmet';
+
 import router from './routes/index';
+import auth from './middleware/auth';
+import { login, createUser } from './controllers/users';
 
 const { PORT = 3000 } = process.env;
 
@@ -14,15 +17,16 @@ const app = express();
 
 app.use(helmet());
 
-app.use((req: any, res: Response, next: NextFunction) => {
+/* app.use((req: any, res: Response, next: NextFunction) => {
   req.user = {
     _id: '66293d230dd37bf14aed15e5',
   };
   next();
-});
-
+}); */
 app.use(json());
 app.use(router);
+
+/* app.use(auth); */
 app.use('/', router);
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
@@ -36,6 +40,8 @@ mongoose.connection.on('error', (err) => {
 
 // eslint-disable-next-line no-unused-vars
 app.use((err: any, req: any, res: Response, next: NextFunction) => {
+  console.log('err', err);
+
   if (err.name === 'ValidationError') {
     res.status(constants.HTTP_STATUS_BAD_REQUEST)
       .send({ message: `Переданы некорректные данные ${err.message}` });
