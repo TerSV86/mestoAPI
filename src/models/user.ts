@@ -2,7 +2,7 @@ import { model, Schema } from 'mongoose';
 import validator from 'validator';
 import { regrex } from '../utils/data';
 
-interface IUser {
+export interface IUser {
   name: string;
   email: string;
   password: string;

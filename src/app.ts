@@ -5,9 +5,9 @@ import mongoose, { Error as MongooseError } from 'mongoose';
 import { constants } from 'http2';
 import helmet from 'helmet';
 import { errors } from 'celebrate';
-// eslint-disable-next-line import/named
 import { requestLogger, errorLogger } from './middleware/logger';
 import router from './routes/index';
+import { CustomRequest } from './types/customTypes';
 
 require('dotenv').config();
 
@@ -17,15 +17,11 @@ const app = express();
 
 app.use(helmet());
 app.use(json());
-
 app.use(requestLogger);
-
 app.use(router);
-
 app.use('/', router);
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
-
 mongoose.connection.on('connected', () => {
   console.log('Подключение к базе данных успешно');
 });
@@ -34,13 +30,11 @@ mongoose.connection.on('error', (err) => {
 });
 
 app.use(errorLogger);
-
 app.use(errors());
-
-// eslint-disable-next-line no-unused-vars, consistent-return
-app.use((err: any, req: any, res: Response, next: NextFunction) => {
+app.use((err: any, req: CustomRequest, res: Response, next: NextFunction) => {
   if (err instanceof Error && err.message.startsWith('E11000')) {
-    return res.status(constants.HTTP_STATUS_CONFLICT).send({ message: 'Пользователь с таким email уже существует' });
+    return res.status(constants.HTTP_STATUS_CONFLICT)
+      .send({ message: 'Пользователь с таким email уже существует' });
   }
 
   if (err.name === 'ValidationError') {

@@ -27,7 +27,6 @@ export const deleteCard = async (req: any, res: Response, next: NextFunction) =>
   const { cardId } = req.params;
 
   return Card.findById(cardId)
-    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка с указанным _id не найдена');

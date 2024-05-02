@@ -2,7 +2,6 @@ import { NextFunction } from 'express';
 import { constants } from 'http2';
 import jwt from 'jsonwebtoken';
 
-// eslint-disable-next-line consistent-return
 export default (req: any, res: any, next: NextFunction) => {
   const { authorization } = req.headers;
 

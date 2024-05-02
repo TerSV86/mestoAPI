@@ -3,6 +3,7 @@ import { constants } from 'http2';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
+import { CustomRequest } from '../types/customTypes';
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
@@ -37,8 +38,8 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     .catch(next);
 };
 
-export const updateUser = async (req: any, res: Response, next: NextFunction) => {
-  const id = req.user._id;
+export const updateUser = async (req: CustomRequest, res: Response, next: NextFunction) => {
+  const id = req.user?._id;
   const { name, about } = req.body;
   return User.findByIdAndUpdate(id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
@@ -47,8 +48,8 @@ export const updateUser = async (req: any, res: Response, next: NextFunction) =>
     .catch(next);
 };
 
-export const updateAvatar = async (req: any, res: Response, next: NextFunction) => {
-  const id = req.user._id;
+export const updateAvatar = async (req: CustomRequest, res: Response, next: NextFunction) => {
+  const id = req.user?._id;
   const { avatar } = req.body;
   return User.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
@@ -57,16 +58,17 @@ export const updateAvatar = async (req: any, res: Response, next: NextFunction) 
     .catch(next);
 };
 
-// eslint-disable-next-line max-len
-export const getInfoCurrentUser = async (req: any, res: Response, next: NextFunction) => User.findById(req.user._id)
+export const getInfoCurrentUser = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction,
+) => User.findById(req.user?._id)
   .then((user) => {
     res.send({ data: user });
   })
   .catch(next);
 
-export const login: any = async (req: any, res: Response, next: NextFunction) => {
-  console.log(req.body);
-
+export const login: any = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email }).select('+password');
