@@ -42,7 +42,7 @@ export const updateUser = async (req: any, res: Response, next: NextFunction) =>
   const { name, about } = req.body;
   return User.findByIdAndUpdate(id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
-      res.status(constants.HTTP_STATUS_CREATED).send({ data: user });
+      res.status(constants.HTTP_STATUS_OK).send({ data: user });
     })
     .catch(next);
 };
@@ -52,7 +52,7 @@ export const updateAvatar = async (req: any, res: Response, next: NextFunction) 
   const { avatar } = req.body;
   return User.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
-      res.status(constants.HTTP_STATUS_CREATED).send({ data: user });
+      res.status(constants.HTTP_STATUS_OK).send({ data: user });
     })
     .catch(next);
 };
