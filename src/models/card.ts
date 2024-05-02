@@ -2,7 +2,7 @@ import { model, Schema } from 'mongoose';
 import validator from 'validator';
 
 interface ICard {
-  name: string;
+  name?: string;
   link: string;
   owener: Schema.Types.ObjectId;
   likes: [Schema.Types.ObjectId];
