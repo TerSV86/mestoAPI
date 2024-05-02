@@ -1,5 +1,6 @@
 import { model, Schema } from 'mongoose';
 import validator from 'validator';
+import { regrex } from '../utils/data';
 
 interface IUser {
   name: string;
@@ -14,7 +15,7 @@ const userSchema = new Schema<IUser>(
     name: {
       type: String,
       default: 'Жак-Ив Кусто',
-      required: [false, 'Поле "name" должно быть заполнено'],
+      required: false,
       minlength: [2, 'Минимальная длина поля "name" - 2'],
       maxlength: [30, 'Максимальная длина поля "name"-30'],
     },
@@ -29,20 +30,24 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String,
       required: true,
+      select: false,
     },
     about: {
       type: String,
       default: 'Исследователь',
       required: false,
       minlength: [2, 'Минимальная длина поля "about" - 2'],
-      maxlength: [200, 'Максимальная длина поля "about"-30'],
+      maxlength: [200, 'Максимальная длина поля "about"-200'],
     },
     avatar: {
       type: String,
       default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
       validate: {
-        validator: (v: string) => validator.isURL(v),
-        message: 'Некорректный URL',
+        validator: (url: string) => {
+          const isMatch = regrex.test(url);
+          return isMatch;
+        },
+        message: 'Введен некорректный URL адрес',
       },
       required: false,
     },

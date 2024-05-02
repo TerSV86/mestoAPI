@@ -4,13 +4,13 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
 
+const { NODE_ENV, JWT_SECRET } = process.env;
+
 export const getUsers = async (req: Request, res: Response) => User.find({})
   .then((users) => res.send({ data: users }))
   .catch(() => res.status(500).send({ message: '1' }));
 
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
-  console.log('tyt');
-
   const { userId } = req.params;
   return User.findById(userId)
     .then((user) => {
@@ -21,7 +21,11 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const {
-    name, email, password, about, avatar,
+    name,
+    email,
+    password,
+    about,
+    avatar,
   } = req.body;
   return bcrypt.hash(password, 10)
     .then((hash) => User.create({
@@ -65,7 +69,7 @@ export const login: any = async (req: any, res: Response, next: NextFunction) =>
 
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       throw new Error('Неправильная почта или пароль');
     }
@@ -73,32 +77,15 @@ export const login: any = async (req: any, res: Response, next: NextFunction) =>
     if (!matched) {
       throw new Error('Неправильная почта или пароль');
     }
+    if (!JWT_SECRET) {
+      throw new Error('Секретный ключ JWT не установлен');
+    }
 
-    const token = jwt.sign({ _id: user._id }, 'some-secret-key'/* process.env.JWT_SECRET */);
-    res.cookie('token', token, { maxAge: 3600000, httpOnly: true }); /* .end() - защита если тело пустое */
+    const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'some-secret-key');
+    res.cookie('token', token, { maxAge: 3600000 * 24 * 7, httpOnly: true }); /* .end() - защита если тело пустое */
 
     res.send({ token, message: 'Все верно!' });
   } catch (err) {
     next(err);
   }
 };
-
-/*  return User.findOne({ email })
-   .then((user) => {
-     if (!user) {
-       throw new Error('Неправельные почта или пароль');
-     }
-     return (bcrypt.compare(password, user.password), user);
-   })
-   .then((matched: boolean, user: any) => {
-     if (!matched) {
-       throw new Error('Неправельные почта или пароль');
-     }
-     res.send({ message: 'Все верно!' });
-     return user;
-   })
-   .then((user) => {
-     const token = jwt.sign({ _id: user._id }, 'some-secret-key');
-   })
-   .catch(next);
-}; */

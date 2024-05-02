@@ -100,7 +100,7 @@
   },
   "include": [
     "src/**/*.ts"
-, "src/app.ts"  ],
+, "src/app.ts", "src/utils/data.js"  ],
   "exclude": [
     "node_modules"
   ],

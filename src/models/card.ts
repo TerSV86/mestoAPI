@@ -13,9 +13,8 @@ const cardSchema = new Schema<ICard>(
   {
     name: {
       type: String,
-      default: 'guest',
-      required: [false, 'Поле "name" должно быть заполнено'],
-      /* minlength: [2, 'Минимальная длина поля "name" - 2'], */
+      required: [true, 'Поле "name" должно быть заполнено'],
+      minlength: [2, 'Минимальная длина поля "name" - 2'],
       maxlength: [30, 'Максимальная длина поля "name"-30'],
     },
     link: {

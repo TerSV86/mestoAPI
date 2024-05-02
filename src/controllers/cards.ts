@@ -3,7 +3,6 @@ import { constants } from 'http2';
 import Card from '../models/card';
 
 const NotFoundError = require('../errors/notFoundError');
-/* const BadRequest = require('../errors/BadRequest'); */
 
 export const getCards = async (req: Request, res: Response) => Card.find({})
   .select('-__v')
@@ -24,15 +23,20 @@ export const createCard = async (req: any, res: Response, next: NextFunction) =>
     });
 };
 
-export const deleteCard = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteCard = async (req: any, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
 
-  return Card.findByIdAndDelete(cardId)
+  return Card.findById(cardId)
+    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка с указанным _id не найдена');
       }
-      res.send({ message: 'Карточка удалена' });
+      if (card.owener.toString() !== req.user._id) {
+        return res.send({ message: 'Вы не можете удалить эту карточку' });
+      }
+      Card.deleteOne({ _id: card._id.toString() })
+        .then(() => res.send({ message: 'Карточка удалена' }));
     })
     .catch(next);
 };

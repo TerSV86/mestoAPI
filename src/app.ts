@@ -2,31 +2,26 @@ import express, {
   json, Response, NextFunction,
 } from 'express';
 import mongoose, { Error as MongooseError } from 'mongoose';
-/* import ValidatorError from 'validator'; */
 import { constants } from 'http2';
-/* import user from './models/user'; */
 import helmet from 'helmet';
-
+import { errors } from 'celebrate';
+// eslint-disable-next-line import/named
+import { requestLogger, errorLogger } from './middleware/logger';
 import router from './routes/index';
-import auth from './middleware/auth';
-import { login, createUser } from './controllers/users';
+
+require('dotenv').config();
 
 const { PORT = 3000 } = process.env;
 
 const app = express();
 
 app.use(helmet());
-
-/* app.use((req: any, res: Response, next: NextFunction) => {
-  req.user = {
-    _id: '66293d230dd37bf14aed15e5',
-  };
-  next();
-}); */
 app.use(json());
+
+app.use(requestLogger);
+
 app.use(router);
 
-/* app.use(auth); */
 app.use('/', router);
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
@@ -38,9 +33,15 @@ mongoose.connection.on('error', (err) => {
   console.error('Ошибка подключения к базе данных:', err);
 });
 
-// eslint-disable-next-line no-unused-vars
+app.use(errorLogger);
+
+app.use(errors());
+
+// eslint-disable-next-line no-unused-vars, consistent-return
 app.use((err: any, req: any, res: Response, next: NextFunction) => {
-  console.log('err', err);
+  if (err instanceof Error && err.message.startsWith('E11000')) {
+    return res.status(constants.HTTP_STATUS_CONFLICT).send({ message: 'Пользователь с таким email уже существует' });
+  }
 
   if (err.name === 'ValidationError') {
     res.status(constants.HTTP_STATUS_BAD_REQUEST)
@@ -59,7 +60,6 @@ app.use((err: any, req: any, res: Response, next: NextFunction) => {
         ? 'На сервере ошибка'
         : message,
     });
-  /* next(); */
 });
 
 app.listen(PORT, () => {
