@@ -6,10 +6,11 @@ import User from '../models/user';
 import { CustomRequest } from '../types/customTypes';
 
 const { NODE_ENV, JWT_SECRET } = process.env;
+const BadRequest = require('../errors/BadRequest');
 
-export const getUsers = async (req: Request, res: Response) => User.find({})
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => User.find({})
   .then((users) => res.send({ data: users }))
-  .catch(() => res.status(500).send({ message: '1' }));
+  .catch(next);
 
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
   const { userId } = req.params;
@@ -73,17 +74,19 @@ export const login: any = async (req: Request, res: Response, next: NextFunction
   try {
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      throw new Error('Неправильная почта или пароль');
+      throw new BadRequest('Неправильная почта или пароль');
     }
     const matched = await bcrypt.compare(password, user.password);
     if (!matched) {
-      throw new Error('Неправильная почта или пароль');
-    }
-    if (!JWT_SECRET) {
-      throw new Error('Секретный ключ JWT не установлен');
+      throw new BadRequest('Неправильная почта или пароль');
     }
 
-    const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'some-secret-key');
+    const token = jwt.sign(
+      { _id: user._id },
+      (NODE_ENV === 'production' && JWT_SECRET)
+        ? JWT_SECRET
+        : 'some-secret-key',
+    );
     res.cookie('token', token, { maxAge: 3600000 * 24 * 7, httpOnly: true }); /* .end() - защита если тело пустое */
 
     res.send({ token, message: 'Все верно!' });

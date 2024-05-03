@@ -1,4 +1,4 @@
-import globals from 'globals';
+/* import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 import path from 'path';
@@ -16,3 +16,4 @@ export default [
   ...compat.extends('standard-with-typescript'),
   ...tseslint.configs.recommended,
 ];
+ */

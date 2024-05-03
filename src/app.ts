@@ -32,6 +32,12 @@ mongoose.connection.on('error', (err) => {
 app.use(errorLogger);
 app.use(errors());
 app.use((err: any, req: CustomRequest, res: Response, next: NextFunction) => {
+  console.log(err.name);
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(constants.HTTP_STATUS_UNAUTHORIZED)
+      .send({ message: 'Токен не действителен' });
+  }
+
   if (err instanceof Error && err.message.startsWith('E11000')) {
     return res.status(constants.HTTP_STATUS_CONFLICT)
       .send({ message: 'Пользователь с таким email уже существует' });

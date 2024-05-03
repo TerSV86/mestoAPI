@@ -36,10 +36,10 @@ const cardSchema = new Schema<ICard>(
     },
     createdAt: {
       type: Date,
-      default: Date.now(),
+      default: Date.now,
     },
   },
   { versionKey: false },
 );
 
-export default model<ICard>('Card', cardSchema);
+export default model<ICard>('card', cardSchema);

@@ -55,4 +55,4 @@ const userSchema = new Schema<IUser>(
   { versionKey: false },
 );
 
-export default model<IUser>('User', userSchema);
+export default model<IUser>('user', userSchema);
