@@ -2,24 +2,25 @@ import { Request, Response, NextFunction } from 'express';
 import { constants } from 'http2';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import User from '../models/user';
+import user from '../models/user';
 import { CustomRequest } from '../types/customTypes';
+import cachingDecoration from '../wrapperDecoration/wrapperCachUserId';
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 const BadRequest = require('../errors/BadRequest');
 
-export const getUsers = async (req: Request, res: Response, next: NextFunction) => User.find({})
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => user.find({})
   .then((users) => res.send({ data: users }))
   .catch(next);
 
-export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
+/* export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
   const { userId } = req.params;
-  return User.findById(userId)
-    .then((user) => {
-      res.send({ data: user });
+  return user.findById(userId)
+    .then((userInfo) => {
+      res.send({ data: userInfo });
     })
     .catch(next);
-};
+}; */
 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const {
@@ -30,11 +31,11 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     avatar,
   } = req.body;
   return bcrypt.hash(password, 10)
-    .then((hash) => User.create({
+    .then((hash) => user.create({
       name, email, password: hash, about, avatar,
     }))
-    .then((user) => {
-      res.status(constants.HTTP_STATUS_CREATED).send({ data: user });
+    .then((newUser) => {
+      res.status(constants.HTTP_STATUS_CREATED).send({ data: newUser });
     })
     .catch(next);
 };
@@ -42,9 +43,9 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 export const updateUser = async (req: CustomRequest, res: Response, next: NextFunction) => {
   const id = req.user?._id;
   const { name, about } = req.body;
-  return User.findByIdAndUpdate(id, { name, about }, { new: true, runValidators: true })
-    .then((user) => {
-      res.status(constants.HTTP_STATUS_OK).send({ data: user });
+  return user.findByIdAndUpdate(id, { name, about }, { new: true, runValidators: true })
+    .then((userUpdate) => {
+      res.status(constants.HTTP_STATUS_OK).send({ data: userUpdate });
     })
     .catch(next);
 };
@@ -52,37 +53,55 @@ export const updateUser = async (req: CustomRequest, res: Response, next: NextFu
 export const updateAvatar = async (req: CustomRequest, res: Response, next: NextFunction) => {
   const id = req.user?._id;
   const { avatar } = req.body;
-  return User.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
-    .then((user) => {
-      res.status(constants.HTTP_STATUS_OK).send({ data: user });
+  return user.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
+    .then((userUpdate) => {
+      res.status(constants.HTTP_STATUS_OK).send({ data: userUpdate });
     })
     .catch(next);
 };
 
-export const getInfoCurrentUser = async (
+/* export const getInfoCurrentUser = async (
   req: CustomRequest,
   res: Response,
   next: NextFunction,
-) => User.findById(req.user?._id)
-  .then((user) => {
-    res.send({ data: user });
+) => user.findById(req.user?._id)
+  .then((info) => {
+    res.send({ data: info });
   })
-  .catch(next);
+  .catch(next); */
+
+// eslint-disable-next-line import/no-mutable-exports
+export let searchUser = async (req: CustomRequest, res: Response, next: NextFunction) => {
+  const id = (req.params.userId) ? req.params.userId : req.user?._id;
+  console.log(id, req.params, req.user);
+
+  return user.findById(id)
+    .then((info) => {
+      res.send({ data: info });
+      return info;
+    })
+    .catch((err) => {
+      console.log(err);
+      next(err);
+    });
+};
+
+searchUser = cachingDecoration(searchUser);
 
 export const login: any = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) {
+    const userLog = await user.findOne({ email }).select('+password');
+    if (!userLog) {
       throw new BadRequest('Неправильная почта или пароль');
     }
-    const matched = await bcrypt.compare(password, user.password);
+    const matched = await bcrypt.compare(password, userLog.password);
     if (!matched) {
       throw new BadRequest('Неправильная почта или пароль');
     }
 
     const token = jwt.sign(
-      { _id: user._id },
+      { _id: userLog._id },
       (NODE_ENV === 'production' && JWT_SECRET)
         ? JWT_SECRET
         : 'some-secret-key',
