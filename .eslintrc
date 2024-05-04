@@ -45,6 +45,8 @@
           "_id"
         ]
       }
-    ]
+    ],
+    "no-unused-vars": "off", 
+    "consistent-return": "off"
   }
 }

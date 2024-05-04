@@ -1,5 +1,6 @@
 import { Request } from 'express';
+import { IUser } from '../models/user';
 
 export interface CustomRequest extends Request {
-  user: { _id: string };
+  user?: IUser & { _id: string; };
 }

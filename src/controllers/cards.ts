@@ -4,11 +4,11 @@ import Card from '../models/card';
 
 const NotFoundError = require('../errors/notFoundError');
 
-export const getCards = async (req: Request, res: Response) => Card.find({})
+export const getCards = async (req: Request, res: Response, next: NextFunction) => Card.find({})
   .select('-__v')
   .populate('owener')
   .then((cards) => res.send({ data: cards }))
-  .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+  .catch(next);
 
 export const createCard = async (req: any, res: Response, next: NextFunction) => {
   const { name, link } = req.body;
@@ -27,7 +27,6 @@ export const deleteCard = async (req: any, res: Response, next: NextFunction) =>
   const { cardId } = req.params;
 
   return Card.findById(cardId)
-    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка с указанным _id не найдена');
@@ -35,7 +34,7 @@ export const deleteCard = async (req: any, res: Response, next: NextFunction) =>
       if (card.owener.toString() !== req.user._id) {
         return res.send({ message: 'Вы не можете удалить эту карточку' });
       }
-      Card.deleteOne({ _id: card._id.toString() })
+      return Card.deleteOne({ _id: card._id.toString() })
         .then(() => res.send({ message: 'Карточка удалена' }));
     })
     .catch(next);

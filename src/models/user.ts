@@ -2,7 +2,7 @@ import { model, Schema } from 'mongoose';
 import validator from 'validator';
 import { regrex } from '../utils/data';
 
-interface IUser {
+export interface IUser {
   name: string;
   email: string;
   password: string;
@@ -55,4 +55,4 @@ const userSchema = new Schema<IUser>(
   { versionKey: false },
 );
 
-export default model<IUser>('User', userSchema);
+export default model<IUser>('user', userSchema);
