@@ -4,6 +4,8 @@ import mongoose, { Error as MongooseError } from 'mongoose';
 import { CustomRequest } from '../types/customTypes';
 
 const errorHandler = (err: any, req: CustomRequest, res: Response, next: NextFunction) => {
+  console.log(err);
+
   if (err.name === 'JsonWebTokenError') {
     return res.status(constants.HTTP_STATUS_UNAUTHORIZED)
       .send({ message: 'Токен не действителен' });
