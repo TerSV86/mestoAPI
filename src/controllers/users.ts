@@ -8,19 +8,11 @@ import cachingDecoration from '../wrapperDecoration/wrapperCachUserId';
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 const BadRequest = require('../errors/BadRequest');
+const Unauthorized = require('../errors/Unauthorized');
 
 export const getUsers = async (req: Request, res: Response, next: NextFunction) => user.find({})
   .then((users) => res.send({ data: users }))
   .catch(next);
-
-/* export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
-  const { userId } = req.params;
-  return user.findById(userId)
-    .then((userInfo) => {
-      res.send({ data: userInfo });
-    })
-    .catch(next);
-}; */
 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const {
@@ -60,16 +52,6 @@ export const updateAvatar = async (req: CustomRequest, res: Response, next: Next
     .catch(next);
 };
 
-/* export const getInfoCurrentUser = async (
-  req: CustomRequest,
-  res: Response,
-  next: NextFunction,
-) => user.findById(req.user?._id)
-  .then((info) => {
-    res.send({ data: info });
-  })
-  .catch(next); */
-
 // eslint-disable-next-line import/no-mutable-exports
 export let searchUser = async (req: CustomRequest, res: Response, next: NextFunction) => {
   const id = (req.params.userId) ? req.params.userId : req.user?._id;
@@ -93,11 +75,11 @@ export const login: any = async (req: Request, res: Response, next: NextFunction
   try {
     const userLog = await user.findOne({ email }).select('+password');
     if (!userLog) {
-      throw new BadRequest('Неправильная почта или пароль');
+      throw new Unauthorized('Неправильная почта или пароль');
     }
     const matched = await bcrypt.compare(password, userLog.password);
     if (!matched) {
-      throw new BadRequest('Неправильная почта или пароль');
+      throw new Unauthorized('Неправильная почта или пароль');
     }
 
     const token = jwt.sign(
